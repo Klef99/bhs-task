@@ -34,7 +34,7 @@ run: swag-v1 ### swag run
 .PHONY: run
 
 docker-rm-volume: ### remove docker volume
-	docker volume rm go-clean-template_pg-data
+	docker volume rm bhs-task_pg-data
 .PHONY: docker-rm-volume
 
 # linter-golangci: ### check by golangci linter

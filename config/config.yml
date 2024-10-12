@@ -11,3 +11,7 @@ logger:
 
 postgres:
   pool_max: 2
+
+jwt:
+  nbf: 1
+  exp: 3600

@@ -1,0 +1,82 @@
+basePath: /v1
+definitions:
+  entity.Credentials:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  v1.loginResponse:
+    properties:
+      status:
+        type: string
+      token:
+        type: string
+    type: object
+  v1.registerResponse:
+    properties:
+      status:
+        type: string
+    type: object
+  v1.response:
+    properties:
+      error:
+        example: message
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: A test assignment for a backend developer at BHS
+  title: Bhs-task
+  version: "1.0"
+paths:
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Registration in the system
+      operationId: register
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.registerResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: Registration
+      tags:
+      - user
+  /user/login:
+    get:
+      consumes:
+      - application/json
+      description: Sign in in the system
+      operationId: login
+      parameters:
+      - description: query params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.Credentials'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.loginResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: Login
+      tags:
+      - user
+swagger: "2.0"

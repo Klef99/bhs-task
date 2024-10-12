@@ -13,6 +13,7 @@ type (
 		HTTP `yaml:"http"`
 		Log  `yaml:"logger"`
 		PG   `yaml:"postgres"`
+		Jwt  `yaml:"jwt"`
 	}
 
 	// App -.
@@ -35,6 +36,13 @@ type (
 	PG struct {
 		PoolMax int    `env-required:"true" yaml:"pool_max" env:"PG_POOL_MAX"`
 		URL     string `env-required:"true"                 env:"PG_URL"`
+	}
+
+	// Jwt -.
+	Jwt struct {
+		Secret string `env-required:"true"                  env:"JWT_SECRET"`
+		Nbf    int    `env-required:"true" yaml:"nbf"`
+		Exp    int    `env-required:"true" yaml:"exp"`
 	}
 )
 

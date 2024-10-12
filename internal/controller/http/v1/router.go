@@ -4,9 +4,13 @@ package v1
 import (
 	"net/http"
 
+	_ "github.com/Klef99/bhs-task/docs"
+	"github.com/Klef99/bhs-task/internal/usecase"
+	"github.com/Klef99/bhs-task/pkg/jwtgenerator"
 	"github.com/Klef99/bhs-task/pkg/logger"
-	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 // NewRouter -.
@@ -16,20 +20,19 @@ import (
 // @version     1.0
 // @host        localhost:8080
 // @BasePath    /v1
-func NewRouter(handler chi.Router, l logger.Interface) {
+func NewRouter(handler chi.Router, l logger.Interface, t usecase.User, jwt jwtgenerator.Interface) {
 	// Options
 	handler.Use(middleware.Logger)
 	handler.Use(middleware.Recoverer)
 
-	// Swagger
-	// swaggerHandler := ginSwagger.DisablingWrapHandler(swaggerFiles.Handler, "DISABLE_SWAGGER_HTTP_HANDLER")
-	// handler.GET("/swagger/*any", swaggerHandler)
 	// K8s probe
 	handler.Get("/healthz", func(resp http.ResponseWriter, req *http.Request) { resp.WriteHeader(http.StatusOK) })
 
-	// Routers
-	// h := handler.Group("/v1")
-	// {
-	// 	newTranslationRoutes(h, t, l)
-	// }
+	// Swagger
+	handler.Get("/swagger/*", httpSwagger.WrapHandler)
+
+	// v1 api declaration
+	r := chi.NewRouter()
+	NewUserRoutes(r, t, l, jwt)
+	handler.Mount("/v1", r)
 }

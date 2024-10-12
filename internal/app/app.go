@@ -5,9 +5,14 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/Klef99/bhs-task/config"
+	v1 "github.com/Klef99/bhs-task/internal/controller/http/v1"
+	"github.com/Klef99/bhs-task/internal/usecase"
+	"github.com/Klef99/bhs-task/internal/usecase/repo"
 	"github.com/Klef99/bhs-task/pkg/httpserver"
+	"github.com/Klef99/bhs-task/pkg/jwtgenerator"
 	"github.com/Klef99/bhs-task/pkg/logger"
 	"github.com/Klef99/bhs-task/pkg/postgres"
 	"github.com/go-chi/chi/v5"
@@ -16,6 +21,15 @@ import (
 func Run(cfg *config.Config) {
 	l := logger.New(cfg.Log.Level)
 
+	// Jwt generator
+	jtg, err := jwtgenerator.New(cfg.Jwt.Secret,
+		jwtgenerator.TokenNbf(time.Second*time.Duration(cfg.Jwt.Nbf)),
+		jwtgenerator.TokenExp(time.Second*time.Duration(cfg.Jwt.Exp)),
+	)
+	if err != nil {
+		l.Fatal(fmt.Errorf("app - Run - jwtgenerator.New: %w", err))
+	}
+
 	// Repository
 	pg, err := postgres.New(cfg.PG.URL, postgres.MaxPoolSize(cfg.PG.PoolMax))
 	if err != nil {
@@ -23,9 +37,14 @@ func Run(cfg *config.Config) {
 	}
 	defer pg.Close()
 
+	// Use case
+	UserUseCase := usecase.New(
+		repo.New(pg),
+	)
+
 	// HTTP Server
 	handler := chi.NewRouter()
-	// v1.NewRouter(handler, l, translationUseCase)
+	v1.NewRouter(handler, l, UserUseCase, jtg)
 	httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))
 
 	// Waiting signal
