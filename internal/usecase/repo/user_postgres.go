@@ -26,6 +26,9 @@ func NewUserRepository(pg *postgres.Postgres, hs hasher.Interface) *UserReposito
 
 // CreateUser -.
 func (r *UserRepository) CreateUser(ctx context.Context, crd entity.Credentials) (bool, error) {
+	if crd.Username == "" || crd.Password == "" {
+		return false, fmt.Errorf("UserRepository - CreateUser - invalid input: username and password must not be empty")
+	}
 	hashedBytes, err := r.Hasher.HashPassword(crd.Password)
 	if err != nil {
 		return false, fmt.Errorf("UserRepository - CreateUser - bcrypt.GenerateFromPassword: %w", err)
@@ -50,6 +53,9 @@ func (r *UserRepository) CreateUser(ctx context.Context, crd entity.Credentials)
 
 // LoginUser -.
 func (r *UserRepository) LoginUser(ctx context.Context, crd entity.Credentials) (int64, error) {
+	if crd.Username == "" || crd.Password == "" {
+		return -1, fmt.Errorf("UserRepository - LoginUser - invalid input: username and password must not be empty")
+	}
 	sql, args, err := r.Builder.Select("id", "password_hash").From("users").Where(sq.Eq{"username": crd.Username}).ToSql()
 	if err != nil {
 		return -1, fmt.Errorf("UserRepository - LoginUser - r.Builder: %w", err)
@@ -61,7 +67,10 @@ func (r *UserRepository) LoginUser(ctx context.Context, crd entity.Credentials) 
 	var passwordHash string
 	var id int64
 	for rows.Next() {
-		rows.Scan(&id, &passwordHash)
+		err := rows.Scan(&id, &passwordHash)
+		if err != nil {
+			return -1, fmt.Errorf("UserRepository - LoginUser - rows.Scan: %w", err)
+		}
 	}
 	err = r.Hasher.CompareHashAndPassword(passwordHash, crd.Password)
 	if err != nil {
@@ -71,34 +80,49 @@ func (r *UserRepository) LoginUser(ctx context.Context, crd entity.Credentials) 
 }
 
 // Deposit -.
-func (r *UserRepository) MakeDeposit(ctx context.Context, user entity.User, amount float64) (bool, error) {
+func (r *UserRepository) MakeDeposit(ctx context.Context, user entity.User, amount float64) (float64, error) {
+	if user.Id < 1 {
+		return -1, fmt.Errorf("UserRepository - MakeDeposit - invalid input: user id must be provided")
+	}
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
-		return false, fmt.Errorf("UserRepository - Deposit - r.Pool.Begin: %w", err)
+		tx.Rollback(ctx)
+		return -1, fmt.Errorf("UserRepository - MakeDeposit - r.Pool.Begin: %w", err)
 	}
 	sql, args, err := r.Builder.
 		Update("users").
 		Set("balance", sq.Expr("balance +?", amount)).
 		Where(sq.Eq{"id": user.Id}).
+		Suffix("RETURNING balance").
 		ToSql()
 	if err != nil {
-		return false, fmt.Errorf("UserRepository - Deposit - r.Builder: %w", err)
+		tx.Rollback(ctx)
+		return -1, fmt.Errorf("UserRepository - MakeDeposit - r.Builder: %w", err)
 	}
-	res, err := tx.Exec(ctx, sql, args...)
+	rows, err := tx.Query(ctx, sql, args...)
 	if err != nil {
-		return false, fmt.Errorf("UserRepository - Deposit - r.Pool.Exec: %w", err)
+		tx.Rollback(ctx)
+		return -1, fmt.Errorf("UserRepository - MakeDeposit - r.Pool.Exec: %w", err)
 	}
+	var balance float64
+	for rows.Next() {
+		err := rows.Scan(&balance)
+		if err != nil {
+			return -1, fmt.Errorf("UserRepository - MakeDeposit - rows.Scan: %w", err)
+		}
+	}
+	rows.Close()
 	err = tx.Commit(ctx)
 	if err != nil {
-		return false, fmt.Errorf("UserRepository - Deposit - tx.Commit: %w", err)
+		tx.Rollback(ctx)
+		return -1, fmt.Errorf("UserRepository - MakeDeposit - tx.Commit: %w", err)
 	}
-	rowsAffected := res.RowsAffected()
-	return rowsAffected > 0, nil
+	return balance, nil
 }
 
 // CheckDeposit -.
 func (r *UserRepository) CheckDeposit(ctx context.Context, user entity.User) (float64, error) {
-	sql, args, err := r.Builder.Select("balance").From("users").Where(sq.Eq{"id": user.Id}).ToSql()
+	sql, args, err := r.Builder.Select("balance").From("users").Where(sq.Eq{"id": user.Id}).Suffix("FOR UPDATE").ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("UserRepository - CheckDeposit - r.Builder: %w", err)
 	}

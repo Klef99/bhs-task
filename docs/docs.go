@@ -17,7 +17,12 @@ const docTemplate = `{
     "paths": {
         "/asset/all": {
             "get": {
-                "description": "Get all assets avaliable to buying in the system",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves all assets available for purchase in the system.",
                 "consumes": [
                     "application/json"
                 ],
@@ -27,17 +32,64 @@ const docTemplate = `{
                 "tags": [
                     "Asset"
                 ],
-                "summary": "Get list of assets to buying",
+                "summary": "Get List of Assets for Buying",
                 "operationId": "BuyingList",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "List of assets available for buying",
                         "schema": {
                             "$ref": "#/definitions/v1.assetsListResponse"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "No assets found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    }
+                }
+            }
+        },
+        "/asset/available": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves a list of all available assets, including both purchased and created assets.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Asset"
+                ],
+                "summary": "Get List of Available Assets",
+                "operationId": "AllAvailableAsset",
+                "responses": {
+                    "200": {
+                        "description": "List of available assets",
+                        "schema": {
+                            "$ref": "#/definitions/v1.assetsListResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "No assets found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/v1.response"
                         }
@@ -47,7 +99,12 @@ const docTemplate = `{
         },
         "/asset/buy": {
             "post": {
-                "description": "Buy asset",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Allows the user to purchase an asset by its ID.",
                 "consumes": [
                     "application/json"
                 ],
@@ -57,17 +114,34 @@ const docTemplate = `{
                 "tags": [
                     "Asset"
                 ],
-                "summary": "Method to buy asset",
+                "summary": "Buy Asset",
                 "operationId": "BuyAsset",
+                "parameters": [
+                    {
+                        "description": "Asset ID to be purchased",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.deleteAssetRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Asset purchased successfully",
                         "schema": {
                             "$ref": "#/definitions/v1.response"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Asset not found or purchase failed",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/v1.response"
                         }
@@ -77,7 +151,12 @@ const docTemplate = `{
         },
         "/asset/create": {
             "post": {
-                "description": "Create asset in the system",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Adds a new asset to the system with the specified details.",
                 "consumes": [
                     "application/json"
                 ],
@@ -91,7 +170,7 @@ const docTemplate = `{
                 "operationId": "CreateAsset",
                 "parameters": [
                     {
-                        "description": "query params",
+                        "description": "Asset details (name, description, price)",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -102,13 +181,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Asset added successfully",
                         "schema": {
                             "$ref": "#/definitions/v1.response"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error or asset creation failed",
                         "schema": {
                             "$ref": "#/definitions/v1.response"
                         }
@@ -118,7 +197,12 @@ const docTemplate = `{
         },
         "/asset/delete": {
             "delete": {
-                "description": "Remove asset in the system",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Removes an asset from the system based on the provided asset ID.",
                 "consumes": [
                     "application/json"
                 ],
@@ -132,7 +216,7 @@ const docTemplate = `{
                 "operationId": "DeleteAsset",
                 "parameters": [
                     {
-                        "description": "query params",
+                        "description": "Asset ID to be deleted",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -143,13 +227,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Asset removed successfully",
                         "schema": {
-                            "$ref": "#/definitions/v1.loginResponse"
+                            "$ref": "#/definitions/v1.response"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Asset not found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/v1.response"
                         }
@@ -159,7 +249,12 @@ const docTemplate = `{
         },
         "/asset/my": {
             "get": {
-                "description": "Get all assets of current user",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves all assets belonging to the currently authenticated user.",
                 "consumes": [
                     "application/json"
                 ],
@@ -169,17 +264,23 @@ const docTemplate = `{
                 "tags": [
                     "Asset"
                 ],
-                "summary": "List user assets",
+                "summary": "List User Assets",
                 "operationId": "MyAssets",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "List of user's assets",
                         "schema": {
                             "$ref": "#/definitions/v1.assetsListResponse"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "No assets found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/v1.response"
                         }
@@ -189,7 +290,12 @@ const docTemplate = `{
         },
         "/deposit/check": {
             "get": {
-                "description": "Get curret balance",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves the current balance for the authenticated user.",
                 "consumes": [
                     "application/json"
                 ],
@@ -199,28 +305,17 @@ const docTemplate = `{
                 "tags": [
                     "Deposit"
                 ],
-                "summary": "Get current deposit",
+                "summary": "Get Current Deposit",
                 "operationId": "CheckDeposit",
-                "parameters": [
-                    {
-                        "description": "query params",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.depositRequest"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Current balance retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/v1.response"
+                            "$ref": "#/definitions/v1.depositResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error or user not found",
                         "schema": {
                             "$ref": "#/definitions/v1.response"
                         }
@@ -230,7 +325,12 @@ const docTemplate = `{
         },
         "/deposit/make": {
             "post": {
-                "description": "Make a deposit",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Allows a user to make a deposit to their account and returns the updated balance.",
                 "consumes": [
                     "application/json"
                 ],
@@ -240,11 +340,11 @@ const docTemplate = `{
                 "tags": [
                     "Deposit"
                 ],
-                "summary": "Make a deposit",
+                "summary": "Make a Deposit",
                 "operationId": "MakeDeposit",
                 "parameters": [
                     {
-                        "description": "query params",
+                        "description": "Amount to be deposited",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -255,13 +355,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Deposit successful and updated balance",
                         "schema": {
-                            "$ref": "#/definitions/v1.response"
+                            "$ref": "#/definitions/v1.depositResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error or deposit failed",
                         "schema": {
                             "$ref": "#/definitions/v1.response"
                         }
@@ -271,7 +371,7 @@ const docTemplate = `{
         },
         "/login": {
             "get": {
-                "description": "Sign in in the system",
+                "description": "Authenticates the user by verifying credentials and returns a JWT token on success.",
                 "consumes": [
                     "application/json"
                 ],
@@ -281,11 +381,11 @@ const docTemplate = `{
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Login",
+                "summary": "User Login",
                 "operationId": "login",
                 "parameters": [
                     {
-                        "description": "query params",
+                        "description": "User credentials (e.g., username, password)",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -296,13 +396,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Success message and JWT token",
                         "schema": {
-                            "$ref": "#/definitions/v1.response"
+                            "$ref": "#/definitions/v1.loginResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error or invalid credentials",
                         "schema": {
                             "$ref": "#/definitions/v1.response"
                         }
@@ -312,7 +412,7 @@ const docTemplate = `{
         },
         "/register": {
             "post": {
-                "description": "Registration in the system",
+                "description": "Handles user registration by accepting credentials and registering a new user in the system.",
                 "consumes": [
                     "application/json"
                 ],
@@ -322,11 +422,11 @@ const docTemplate = `{
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Registration",
+                "summary": "User Registration",
                 "operationId": "register",
                 "parameters": [
                     {
-                        "description": "query params",
+                        "description": "User credentials (e.g., username, password)",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -337,13 +437,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "User registered successfully",
                         "schema": {
                             "$ref": "#/definitions/v1.response"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error or user already exists",
                         "schema": {
                             "$ref": "#/definitions/v1.response"
                         }
@@ -425,6 +525,17 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.depositResponse": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "number"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "v1.loginResponse": {
             "type": "object",
             "properties": {
@@ -445,6 +556,13 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
     }
 }`
 
@@ -453,7 +571,7 @@ var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8080",
 	BasePath:         "/v1",
-	Schemes:          []string{},
+	Schemes:          []string{"http"},
 	Title:            "Bhs-task",
 	Description:      "A test assignment for a backend developer at BHS",
 	InfoInstanceName: "swagger",

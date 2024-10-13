@@ -46,6 +46,13 @@ definitions:
       amount:
         type: number
     type: object
+  v1.depositResponse:
+    properties:
+      balance:
+        type: number
+      status:
+        type: string
+    type: object
   v1.loginResponse:
     properties:
       status:
@@ -70,77 +77,63 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get all assets avaliable to buying in the system
+      description: Retrieves all assets available for purchase in the system.
       operationId: BuyingList
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: List of assets available for buying
           schema:
             $ref: '#/definitions/v1.assetsListResponse'
         "404":
-          description: Not Found
+          description: No assets found
           schema:
             $ref: '#/definitions/v1.response'
-      summary: Get list of assets to buying
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/v1.response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get List of Assets for Buying
+      tags:
+      - Asset
+  /asset/available:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of all available assets, including both purchased
+        and created assets.
+      operationId: AllAvailableAsset
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of available assets
+          schema:
+            $ref: '#/definitions/v1.assetsListResponse'
+        "404":
+          description: No assets found
+          schema:
+            $ref: '#/definitions/v1.response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/v1.response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get List of Available Assets
       tags:
       - Asset
   /asset/buy:
     post:
       consumes:
       - application/json
-      description: Buy asset
+      description: Allows the user to purchase an asset by its ID.
       operationId: BuyAsset
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.response'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/v1.response'
-      summary: Method to buy asset
-      tags:
-      - Asset
-  /asset/create:
-    post:
-      consumes:
-      - application/json
-      description: Create asset in the system
-      operationId: CreateAsset
       parameters:
-      - description: query params
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/v1.createAssetRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/v1.response'
-      summary: Create Asset
-      tags:
-      - Asset
-  /asset/delete:
-    delete:
-      consumes:
-      - application/json
-      description: Remove asset in the system
-      operationId: DeleteAsset
-      parameters:
-      - description: query params
+      - description: Asset ID to be purchased
         in: body
         name: request
         required: true
@@ -150,13 +143,81 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.loginResponse'
-        "404":
-          description: Not Found
+          description: Asset purchased successfully
           schema:
             $ref: '#/definitions/v1.response'
+        "404":
+          description: Asset not found or purchase failed
+          schema:
+            $ref: '#/definitions/v1.response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/v1.response'
+      security:
+      - ApiKeyAuth: []
+      summary: Buy Asset
+      tags:
+      - Asset
+  /asset/create:
+    post:
+      consumes:
+      - application/json
+      description: Adds a new asset to the system with the specified details.
+      operationId: CreateAsset
+      parameters:
+      - description: Asset details (name, description, price)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.createAssetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Asset added successfully
+          schema:
+            $ref: '#/definitions/v1.response'
+        "500":
+          description: Internal server error or asset creation failed
+          schema:
+            $ref: '#/definitions/v1.response'
+      security:
+      - ApiKeyAuth: []
+      summary: Create Asset
+      tags:
+      - Asset
+  /asset/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Removes an asset from the system based on the provided asset ID.
+      operationId: DeleteAsset
+      parameters:
+      - description: Asset ID to be deleted
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.deleteAssetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Asset removed successfully
+          schema:
+            $ref: '#/definitions/v1.response'
+        "404":
+          description: Asset not found
+          schema:
+            $ref: '#/definitions/v1.response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/v1.response'
+      security:
+      - ApiKeyAuth: []
       summary: Delete Asset
       tags:
       - Asset
@@ -164,57 +225,59 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get all assets of current user
+      description: Retrieves all assets belonging to the currently authenticated user.
       operationId: MyAssets
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: List of user's assets
           schema:
             $ref: '#/definitions/v1.assetsListResponse'
         "404":
-          description: Not Found
+          description: No assets found
           schema:
             $ref: '#/definitions/v1.response'
-      summary: List user assets
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/v1.response'
+      security:
+      - ApiKeyAuth: []
+      summary: List User Assets
       tags:
       - Asset
   /deposit/check:
     get:
       consumes:
       - application/json
-      description: Get curret balance
+      description: Retrieves the current balance for the authenticated user.
       operationId: CheckDeposit
-      parameters:
-      - description: query params
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/v1.depositRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Current balance retrieved successfully
           schema:
-            $ref: '#/definitions/v1.response'
+            $ref: '#/definitions/v1.depositResponse'
         "500":
-          description: Internal Server Error
+          description: Internal server error or user not found
           schema:
             $ref: '#/definitions/v1.response'
-      summary: Get current deposit
+      security:
+      - ApiKeyAuth: []
+      summary: Get Current Deposit
       tags:
       - Deposit
   /deposit/make:
     post:
       consumes:
       - application/json
-      description: Make a deposit
+      description: Allows a user to make a deposit to their account and returns the
+        updated balance.
       operationId: MakeDeposit
       parameters:
-      - description: query params
+      - description: Amount to be deposited
         in: body
         name: request
         required: true
@@ -224,24 +287,27 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Deposit successful and updated balance
           schema:
-            $ref: '#/definitions/v1.response'
+            $ref: '#/definitions/v1.depositResponse'
         "500":
-          description: Internal Server Error
+          description: Internal server error or deposit failed
           schema:
             $ref: '#/definitions/v1.response'
-      summary: Make a deposit
+      security:
+      - ApiKeyAuth: []
+      summary: Make a Deposit
       tags:
       - Deposit
   /login:
     get:
       consumes:
       - application/json
-      description: Sign in in the system
+      description: Authenticates the user by verifying credentials and returns a JWT
+        token on success.
       operationId: login
       parameters:
-      - description: query params
+      - description: User credentials (e.g., username, password)
         in: body
         name: request
         required: true
@@ -251,24 +317,25 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Success message and JWT token
           schema:
-            $ref: '#/definitions/v1.response'
+            $ref: '#/definitions/v1.loginResponse'
         "500":
-          description: Internal Server Error
+          description: Internal server error or invalid credentials
           schema:
             $ref: '#/definitions/v1.response'
-      summary: Login
+      summary: User Login
       tags:
       - Authentication
   /register:
     post:
       consumes:
       - application/json
-      description: Registration in the system
+      description: Handles user registration by accepting credentials and registering
+        a new user in the system.
       operationId: register
       parameters:
-      - description: query params
+      - description: User credentials (e.g., username, password)
         in: body
         name: request
         required: true
@@ -278,14 +345,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: User registered successfully
           schema:
             $ref: '#/definitions/v1.response'
         "500":
-          description: Internal Server Error
+          description: Internal server error or user already exists
           schema:
             $ref: '#/definitions/v1.response'
-      summary: Registration
+      summary: User Registration
       tags:
       - Authentication
+schemes:
+- http
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

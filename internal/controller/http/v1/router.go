@@ -20,6 +20,10 @@ import (
 // @version     1.0
 // @host        localhost:8080
 // @BasePath    /v1
+// @schemes     http
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func NewRouter(handler chi.Router, l logger.Interface, t usecase.User, a usecase.Asset, jwt jwtgenerator.Interface) {
 	// Options
 	handler.Use(middleware.Logger)

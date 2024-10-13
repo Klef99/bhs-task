@@ -35,16 +35,16 @@ func NewUserRoutes(handler chi.Router, t usecase.User, l logger.Interface, jtg j
 	handler.Mount("/", router)
 }
 
-// @Summary     Registration
-// @Description Registration in the system
+// @Summary     User Registration
+// @Description Handles user registration by accepting credentials and registering a new user in the system.
 // @ID          register
-// @Tags  	    Authentication
+// @Tags        Authentication
 // @Accept      json
 // @Produce     json
-// @Success     200 {object} response
-// @Failure     500 {object} response
+// @Success     200 {object} response "User registered successfully"
+// @Failure     500 {object} response "Internal server error or user already exists"
 // @Router      /register [post]
-// @Param request body entity.Credentials true "query params"
+// @Param       request body entity.Credentials true "User credentials (e.g., username, password)"
 func (rt *userRoutes) Register(w http.ResponseWriter, r *http.Request) {
 	crd := entity.Credentials{}
 	decoder := json.NewDecoder(r.Body)
@@ -55,7 +55,7 @@ func (rt *userRoutes) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	status, err := rt.t.Register(r.Context(), crd)
-	if err != nil {
+	if err != nil || !status {
 		rt.l.Error(err, "http - v1 - register")
 		errorResponse(w, http.StatusInternalServerError, "error registering user or user already exists")
 		return
@@ -71,16 +71,16 @@ type loginResponse struct {
 	Token  string `json:"token"`
 }
 
-// @Summary     Login
-// @Description Sign in in the system
+// @Summary     User Login
+// @Description Authenticates the user by verifying credentials and returns a JWT token on success.
 // @ID          login
-// @Tags  	    Authentication
+// @Tags        Authentication
 // @Accept      json
 // @Produce     json
-// @Success     200 {object} response
-// @Failure     500 {object} response
+// @Success     200 {object} loginResponse "Success message and JWT token"
+// @Failure     500 {object} response "Internal server error or invalid credentials"
 // @Router      /login [get]
-// @Param request body entity.Credentials true "query params"
+// @Param       request body entity.Credentials true "User credentials (e.g., username, password)"
 func (rt *userRoutes) Login(w http.ResponseWriter, r *http.Request) {
 	crd := entity.Credentials{}
 	decoder := json.NewDecoder(r.Body)
@@ -112,16 +112,22 @@ type depositRequest struct {
 	Amount float64 `json:"amount"`
 }
 
-// @Summary     Make a deposit
-// @Description Make a deposit
+type depositResponse struct {
+	Status  string  `json:"status"`
+	Balance float64 `json:"balance"`
+}
+
+// @Summary     Make a Deposit
+// @Description Allows a user to make a deposit to their account and returns the updated balance.
 // @ID          MakeDeposit
-// @Tags  	    Deposit
+// @Security    ApiKeyAuth
+// @Tags        Deposit
 // @Accept      json
 // @Produce     json
-// @Success     200 {object} response
-// @Failure     500 {object} response
+// @Success     200 {object} depositResponse "Deposit successful and updated balance"
+// @Failure     500 {object} response "Internal server error or deposit failed"
 // @Router      /deposit/make [post]
-// @Param request body depositRequest true "query params"
+// @Param       request body depositRequest true "Amount to be deposited"
 func (rt *userRoutes) Deposit(w http.ResponseWriter, r *http.Request) {
 	req := depositRequest{}
 	decoder := json.NewDecoder(r.Body)
@@ -150,35 +156,31 @@ func (rt *userRoutes) Deposit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	usr := entity.User{Username: name, Id: int64(id)}
-	status, err := rt.t.MakeDeposit(r.Context(), usr, req.Amount)
+	balance, err := rt.t.MakeDeposit(r.Context(), usr, req.Amount)
 	if err != nil {
 		rt.l.Error(err, "http - v1 - Deposit - rt.t.Deposit")
 		errorResponse(w, http.StatusInternalServerError, "error depositing money")
 		return
 	}
-	if status {
+	if balance != -1 {
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(response{"Deposit successful"})
+		json.NewEncoder(w).Encode(depositResponse{"Deposit successful", balance})
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(response{"Error depositing money"})
 	}
 }
 
-type checkDepositResponse struct {
-	Amount float64 `json:"amount"`
-}
-
-// @Summary     Get current deposit
-// @Description Get curret balance
+// @Summary     Get Current Deposit
+// @Description Retrieves the current balance for the authenticated user.
 // @ID          CheckDeposit
-// @Tags  	    Deposit
+// @Security    ApiKeyAuth
+// @Tags        Deposit
 // @Accept      json
 // @Produce     json
-// @Success     200 {object} response
-// @Failure     500 {object} response
+// @Success     200 {object} depositResponse "Current balance retrieved successfully"
+// @Failure     500 {object} response "Internal server error or user not found"
 // @Router      /deposit/check [get]
-// @Param request body depositRequest true "query params"
 func (rt *userRoutes) CheckDeposit(w http.ResponseWriter, r *http.Request) {
 	_, claims, err := jwtauth.FromContext(r.Context())
 	if err != nil {
@@ -206,6 +208,6 @@ func (rt *userRoutes) CheckDeposit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(checkDepositResponse{deposit})
+	json.NewEncoder(w).Encode(depositResponse{"OK", deposit})
 
 }

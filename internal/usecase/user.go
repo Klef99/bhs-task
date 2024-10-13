@@ -41,12 +41,12 @@ func (uc *UserUseCase) Login(ctx context.Context, crd entity.Credentials) (entit
 }
 
 // Deposit -.
-func (uc *UserUseCase) MakeDeposit(ctx context.Context, user entity.User, amount float64) (bool, error) {
-	status, err := uc.repo.MakeDeposit(ctx, user, amount)
+func (uc *UserUseCase) MakeDeposit(ctx context.Context, user entity.User, amount float64) (float64, error) {
+	balance, err := uc.repo.MakeDeposit(ctx, user, amount)
 	if err != nil {
-		return false, fmt.Errorf("UserUseCase - Deposit - uc.repo.Deposit: %w", err)
+		return -1, fmt.Errorf("UserUseCase - Deposit - uc.repo.Deposit: %w", err)
 	}
-	return status, err
+	return balance, err
 }
 
 // CheckDeposit -.
