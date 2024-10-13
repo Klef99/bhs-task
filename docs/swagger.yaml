@@ -1,11 +1,50 @@
 basePath: /v1
 definitions:
+  entity.Asset:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      owner_id:
+        type: integer
+      price:
+        type: number
+    type: object
   entity.Credentials:
     properties:
       password:
         type: string
       username:
         type: string
+    type: object
+  v1.assetsListResponse:
+    properties:
+      assets:
+        items:
+          $ref: '#/definitions/entity.Asset'
+        type: array
+    type: object
+  v1.createAssetRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  v1.deleteAssetRequest:
+    properties:
+      id:
+        type: integer
+    type: object
+  v1.depositRequest:
+    properties:
+      amount:
+        type: number
     type: object
   v1.loginResponse:
     properties:
@@ -14,14 +53,9 @@ definitions:
       token:
         type: string
     type: object
-  v1.registerResponse:
-    properties:
-      status:
-        type: string
-    type: object
   v1.response:
     properties:
-      error:
+      status:
         example: message
         type: string
     type: object
@@ -32,27 +66,175 @@ info:
   title: Bhs-task
   version: "1.0"
 paths:
-  /register:
-    post:
+  /asset/all:
+    get:
       consumes:
       - application/json
-      description: Registration in the system
-      operationId: register
+      description: Get all assets avaliable to buying in the system
+      operationId: BuyingList
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.registerResponse'
+            $ref: '#/definitions/v1.assetsListResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: Get list of assets to buying
+      tags:
+      - Asset
+  /asset/buy:
+    post:
+      consumes:
+      - application/json
+      description: Buy asset
+      operationId: BuyAsset
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: Method to buy asset
+      tags:
+      - Asset
+  /asset/create:
+    post:
+      consumes:
+      - application/json
+      description: Create asset in the system
+      operationId: CreateAsset
+      parameters:
+      - description: query params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.createAssetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.response'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.response'
-      summary: Registration
+      summary: Create Asset
       tags:
-      - user
-  /user/login:
+      - Asset
+  /asset/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Remove asset in the system
+      operationId: DeleteAsset
+      parameters:
+      - description: query params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.deleteAssetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.loginResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: Delete Asset
+      tags:
+      - Asset
+  /asset/my:
+    get:
+      consumes:
+      - application/json
+      description: Get all assets of current user
+      operationId: MyAssets
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.assetsListResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: List user assets
+      tags:
+      - Asset
+  /deposit/check:
+    get:
+      consumes:
+      - application/json
+      description: Get curret balance
+      operationId: CheckDeposit
+      parameters:
+      - description: query params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.depositRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: Get current deposit
+      tags:
+      - Deposit
+  /deposit/make:
+    post:
+      consumes:
+      - application/json
+      description: Make a deposit
+      operationId: MakeDeposit
+      parameters:
+      - description: query params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.depositRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: Make a deposit
+      tags:
+      - Deposit
+  /login:
     get:
       consumes:
       - application/json
@@ -71,12 +253,39 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.loginResponse'
+            $ref: '#/definitions/v1.response'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.response'
       summary: Login
       tags:
-      - user
+      - Authentication
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Registration in the system
+      operationId: register
+      parameters:
+      - description: query params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.Credentials'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: Registration
+      tags:
+      - Authentication
 swagger: "2.0"

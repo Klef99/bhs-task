@@ -1,8 +1,8 @@
 package entity
 
 type User struct {
-	Id      int
-	Usename string
+	Id       int64
+	Username string
 }
 
 type Credentials struct {

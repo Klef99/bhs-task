@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -13,8 +14,9 @@ const (
 )
 
 type Interface interface {
-	GenerateToken(username string) (string, error)
+	GenerateToken(username string, userId int64) (string, error)
 	ValidateToken(tokenString string) (string, error)
+	GetJWTAuth() *jwtauth.JWTAuth
 }
 
 type JwtTokenGenerator struct {
@@ -25,13 +27,14 @@ type JwtTokenGenerator struct {
 
 var _ Interface = (*JwtTokenGenerator)(nil)
 
-func (jtg *JwtTokenGenerator) GenerateToken(username string) (string, error) {
+func (jtg *JwtTokenGenerator) GenerateToken(username string, userID int64) (string, error) {
 	now := time.Now()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"name": username,
 		"nbf":  now.Add(jtg.Nbf).Unix(),
 		"exp":  now.Add(jtg.Exp).Unix(),
 		"iat":  now.Unix(),
+		"id":   userID,
 	})
 	tokenString, err := token.SignedString([]byte(jtg.secret))
 	if err != nil {
@@ -56,6 +59,11 @@ func (jtg *JwtTokenGenerator) ValidateToken(tokenString string) (string, error) 
 	} else {
 		return "", err
 	}
+}
+
+func (jtg *JwtTokenGenerator) GetJWTAuth() *jwtauth.JWTAuth {
+	// Create new JWTAuth instance with our signing method and secret key
+	return jwtauth.New("HS256", []byte(jtg.secret), nil)
 }
 
 // New -.

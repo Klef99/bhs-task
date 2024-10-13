@@ -20,7 +20,7 @@ import (
 // @version     1.0
 // @host        localhost:8080
 // @BasePath    /v1
-func NewRouter(handler chi.Router, l logger.Interface, t usecase.User, jwt jwtgenerator.Interface) {
+func NewRouter(handler chi.Router, l logger.Interface, t usecase.User, a usecase.Asset, jwt jwtgenerator.Interface) {
 	// Options
 	handler.Use(middleware.Logger)
 	handler.Use(middleware.Recoverer)
@@ -34,5 +34,6 @@ func NewRouter(handler chi.Router, l logger.Interface, t usecase.User, jwt jwtge
 	// v1 api declaration
 	r := chi.NewRouter()
 	NewUserRoutes(r, t, l, jwt)
+	NewAssetRoutes(r, a, l, jwt)
 	handler.Mount("/v1", r)
 }

@@ -11,6 +11,7 @@ import (
 	v1 "github.com/Klef99/bhs-task/internal/controller/http/v1"
 	"github.com/Klef99/bhs-task/internal/usecase"
 	"github.com/Klef99/bhs-task/internal/usecase/repo"
+	"github.com/Klef99/bhs-task/pkg/hasher"
 	"github.com/Klef99/bhs-task/pkg/httpserver"
 	"github.com/Klef99/bhs-task/pkg/jwtgenerator"
 	"github.com/Klef99/bhs-task/pkg/logger"
@@ -38,13 +39,15 @@ func Run(cfg *config.Config) {
 	defer pg.Close()
 
 	// Use case
-	UserUseCase := usecase.New(
-		repo.New(pg),
+	UserUseCase := usecase.NewUserUseCase(
+		repo.NewUserRepository(pg, hasher.NewHasher()),
 	)
-
+	AssetUseCase := usecase.NewAssetUseCase(
+		repo.NewAssetRepository(pg),
+	)
 	// HTTP Server
 	handler := chi.NewRouter()
-	v1.NewRouter(handler, l, UserUseCase, jtg)
+	v1.NewRouter(handler, l, UserUseCase, AssetUseCase, jtg)
 	httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))
 
 	// Waiting signal
