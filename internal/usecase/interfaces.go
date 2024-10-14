@@ -26,20 +26,22 @@ type (
 	Asset interface {
 		CreateAsset(ctx context.Context, ast entity.Asset) (bool, error)
 		DeleteAsset(ctx context.Context, user entity.User, id int64) (bool, error)
-		UserAssetsList(ctx context.Context, user entity.User) ([]entity.Asset, error)
-
-		GetAssetsToBuying(ctx context.Context, user entity.User) ([]entity.Asset, error)
 		BuyAsset(ctx context.Context, user entity.User, id int64) (bool, error)
-		GetAllAvaliableAsset(ctx context.Context, user entity.User) ([]entity.Asset, error)
+		UserAssetsList(ctx context.Context, user entity.User) ([]entity.Asset, error)
+		GetAssetById(ctx context.Context, id int64) (entity.Asset, error)
+		GetAssetsToBuying(ctx context.Context, user entity.User) ([]entity.Asset, error)
+		GetPurchasedAsset(ctx context.Context, user entity.User) ([]entity.Asset, error)
+		// UpdateAssetById(ctx context.Context, asset entity.Asset) (entity.Asset, error)
 	}
 
 	AssetRepository interface {
 		Store(ctx context.Context, ast entity.Asset) (bool, error)
 		Erase(ctx context.Context, user entity.User, id int64) (bool, error)
 		UserAssetsList(ctx context.Context, user entity.User) ([]entity.Asset, error)
-
+		GetAssetById(ctx context.Context, id int64) (entity.Asset, error)
 		GetOtherUsersAssets(ctx context.Context, user entity.User) ([]entity.Asset, error)
 		BuyAsset(ctx context.Context, user entity.User, id int64) (bool, error)
 		GetPurchasedAssets(ctx context.Context, user entity.User) ([]entity.Asset, error)
+		// UpdateAssetById(ctx context.Context, asset entity.Asset) (entity.Asset, error)
 	}
 )

@@ -24,13 +24,13 @@ func NewUserRoutes(handler chi.Router, t usecase.User, l logger.Interface, jtg j
 	tokenAuth := rt.jtg.GetJWTAuth()
 	router.Group(func(r chi.Router) {
 		r.Post("/register", rt.Register)
-		r.Get("/login", rt.Login)
+		r.Post("/login", rt.Login)
 	})
 	router.Group(func(r chi.Router) {
 		r.Use(jwtauth.Verifier(tokenAuth))
 		r.Use(jwtauth.Authenticator(tokenAuth))
-		r.Post("/deposit/make", rt.Deposit)
-		r.Get("/deposit/check", rt.CheckDeposit)
+		r.Post("/deposit", rt.Deposit)
+		r.Get("/deposit", rt.CheckDeposit)
 	})
 	handler.Mount("/", router)
 }
@@ -79,7 +79,7 @@ type loginResponse struct {
 // @Produce     json
 // @Success     200 {object} loginResponse "Success message and JWT token"
 // @Failure     500 {object} response "Internal server error or invalid credentials"
-// @Router      /login [get]
+// @Router      /login [post]
 // @Param       request body entity.Credentials true "User credentials (e.g., username, password)"
 func (rt *userRoutes) Login(w http.ResponseWriter, r *http.Request) {
 	crd := entity.Credentials{}
@@ -126,7 +126,7 @@ type depositResponse struct {
 // @Produce     json
 // @Success     200 {object} depositResponse "Deposit successful and updated balance"
 // @Failure     500 {object} response "Internal server error or deposit failed"
-// @Router      /deposit/make [post]
+// @Router      /deposit [post]
 // @Param       request body depositRequest true "Amount to be deposited"
 func (rt *userRoutes) Deposit(w http.ResponseWriter, r *http.Request) {
 	req := depositRequest{}
@@ -180,7 +180,7 @@ func (rt *userRoutes) Deposit(w http.ResponseWriter, r *http.Request) {
 // @Produce     json
 // @Success     200 {object} depositResponse "Current balance retrieved successfully"
 // @Failure     500 {object} response "Internal server error or user not found"
-// @Router      /deposit/check [get]
+// @Router      /deposit [get]
 func (rt *userRoutes) CheckDeposit(w http.ResponseWriter, r *http.Request) {
 	_, claims, err := jwtauth.FromContext(r.Context())
 	if err != nil {

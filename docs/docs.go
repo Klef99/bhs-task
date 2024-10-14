@@ -15,14 +15,14 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/asset/all": {
+        "/asset": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Retrieves all assets available for purchase in the system.",
+                "description": "Retrieves all assets belonging to the currently authenticated user.",
                 "consumes": [
                     "application/json"
                 ],
@@ -32,13 +32,13 @@ const docTemplate = `{
                 "tags": [
                     "Asset"
                 ],
-                "summary": "Get List of Assets for Buying",
-                "operationId": "BuyingList",
+                "summary": "List User Assets",
+                "operationId": "MyAssets",
                 "responses": {
                     "200": {
-                        "description": "List of assets available for buying",
+                        "description": "List of user's assets",
                         "schema": {
-                            "$ref": "#/definitions/v1.assetsListResponse"
+                            "$ref": "#/definitions/v1.listOfAssetResponse"
                         }
                     },
                     "404": {
@@ -54,102 +54,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/asset/available": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Retrieves a list of all available assets, including both purchased and created assets.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Asset"
-                ],
-                "summary": "Get List of Available Assets",
-                "operationId": "AllAvailableAsset",
-                "responses": {
-                    "200": {
-                        "description": "List of available assets",
-                        "schema": {
-                            "$ref": "#/definitions/v1.assetsListResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "No assets found",
-                        "schema": {
-                            "$ref": "#/definitions/v1.response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/v1.response"
-                        }
-                    }
-                }
-            }
-        },
-        "/asset/buy": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Allows the user to purchase an asset by its ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Asset"
-                ],
-                "summary": "Buy Asset",
-                "operationId": "BuyAsset",
-                "parameters": [
-                    {
-                        "description": "Asset ID to be purchased",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.deleteAssetRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Asset purchased successfully",
-                        "schema": {
-                            "$ref": "#/definitions/v1.response"
-                        }
-                    },
-                    "404": {
-                        "description": "Asset not found or purchase failed",
-                        "schema": {
-                            "$ref": "#/definitions/v1.response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/v1.response"
-                        }
-                    }
-                }
-            }
-        },
-        "/asset/create": {
+            },
             "post": {
                 "security": [
                     {
@@ -195,7 +100,137 @@ const docTemplate = `{
                 }
             }
         },
-        "/asset/delete": {
+        "/asset/market": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves all assets available for purchase in the system.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Asset"
+                ],
+                "summary": "Get List of Assets for Buying",
+                "operationId": "BuyingList",
+                "responses": {
+                    "200": {
+                        "description": "List of assets available for buying",
+                        "schema": {
+                            "$ref": "#/definitions/v1.listOfAssetResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "No assets found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    }
+                }
+            }
+        },
+        "/asset/purchased": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves a list of all purchased assets.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Asset"
+                ],
+                "summary": "Get List of Purchased Assets",
+                "operationId": "PurchasedAsset",
+                "responses": {
+                    "200": {
+                        "description": "List of purchased assets",
+                        "schema": {
+                            "$ref": "#/definitions/v1.listOfAssetResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "No assets found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    }
+                }
+            }
+        },
+        "/asset/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get an asset from the system based on the provided asset ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Asset"
+                ],
+                "summary": "Get Asset",
+                "operationId": "GetAsset",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Asset ID to retrieve",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Asset retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Asset"
+                        }
+                    },
+                    "404": {
+                        "description": "Asset not found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "security": [
                     {
@@ -216,13 +251,11 @@ const docTemplate = `{
                 "operationId": "DeleteAsset",
                 "parameters": [
                     {
+                        "type": "integer",
                         "description": "Asset ID to be deleted",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.deleteAssetRequest"
-                        }
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -247,14 +280,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/asset/my": {
+        "/asset/{id}/buy": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Retrieves all assets belonging to the currently authenticated user.",
+                "description": "Allows the user to purchase an asset by its ID.",
                 "consumes": [
                     "application/json"
                 ],
@@ -264,17 +297,26 @@ const docTemplate = `{
                 "tags": [
                     "Asset"
                 ],
-                "summary": "List User Assets",
-                "operationId": "MyAssets",
+                "summary": "Buy Asset",
+                "operationId": "BuyAsset",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Asset ID to retrieve",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "List of user's assets",
+                        "description": "Asset purchased successfully",
                         "schema": {
-                            "$ref": "#/definitions/v1.assetsListResponse"
+                            "$ref": "#/definitions/v1.response"
                         }
                     },
                     "404": {
-                        "description": "No assets found",
+                        "description": "Asset not found or purchase failed",
                         "schema": {
                             "$ref": "#/definitions/v1.response"
                         }
@@ -288,7 +330,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/deposit/check": {
+        "/deposit": {
             "get": {
                 "security": [
                     {
@@ -321,9 +363,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/deposit/make": {
+            },
             "post": {
                 "security": [
                     {
@@ -370,7 +410,7 @@ const docTemplate = `{
             }
         },
         "/login": {
-            "get": {
+            "post": {
                 "description": "Authenticates the user by verifying credentials and returns a JWT token on success.",
                 "consumes": [
                     "application/json"
@@ -484,17 +524,6 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.assetsListResponse": {
-            "type": "object",
-            "properties": {
-                "assets": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/entity.Asset"
-                    }
-                }
-            }
-        },
         "v1.createAssetRequest": {
             "type": "object",
             "properties": {
@@ -506,14 +535,6 @@ const docTemplate = `{
                 },
                 "price": {
                     "type": "number"
-                }
-            }
-        },
-        "v1.deleteAssetRequest": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
                 }
             }
         },
@@ -533,6 +554,17 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "v1.listOfAssetResponse": {
+            "type": "object",
+            "properties": {
+                "assets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Asset"
+                    }
                 }
             }
         },
@@ -559,6 +591,7 @@ const docTemplate = `{
     },
     "securityDefinitions": {
         "ApiKeyAuth": {
+            "description": "Type \"Bearer\" followed by a space and JWT token.",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"

@@ -1,4 +1,3 @@
-// Package v1 implements routing paths. Each services in own file.
 package v1
 
 import (
@@ -24,6 +23,7 @@ import (
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 func NewRouter(handler chi.Router, l logger.Interface, t usecase.User, a usecase.Asset, jwt jwtgenerator.Interface) {
 	// Options
 	handler.Use(middleware.Logger)

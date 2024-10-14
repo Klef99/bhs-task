@@ -20,13 +20,6 @@ definitions:
       username:
         type: string
     type: object
-  v1.assetsListResponse:
-    properties:
-      assets:
-        items:
-          $ref: '#/definitions/entity.Asset'
-        type: array
-    type: object
   v1.createAssetRequest:
     properties:
       description:
@@ -35,11 +28,6 @@ definitions:
         type: string
       price:
         type: number
-    type: object
-  v1.deleteAssetRequest:
-    properties:
-      id:
-        type: integer
     type: object
   v1.depositRequest:
     properties:
@@ -52,6 +40,13 @@ definitions:
         type: number
       status:
         type: string
+    type: object
+  v1.listOfAssetResponse:
+    properties:
+      assets:
+        items:
+          $ref: '#/definitions/entity.Asset'
+        type: array
     type: object
   v1.loginResponse:
     properties:
@@ -73,19 +68,19 @@ info:
   title: Bhs-task
   version: "1.0"
 paths:
-  /asset/all:
+  /asset:
     get:
       consumes:
       - application/json
-      description: Retrieves all assets available for purchase in the system.
-      operationId: BuyingList
+      description: Retrieves all assets belonging to the currently authenticated user.
+      operationId: MyAssets
       produces:
       - application/json
       responses:
         "200":
-          description: List of assets available for buying
+          description: List of user's assets
           schema:
-            $ref: '#/definitions/v1.assetsListResponse'
+            $ref: '#/definitions/v1.listOfAssetResponse'
         "404":
           description: No assets found
           schema:
@@ -96,70 +91,9 @@ paths:
             $ref: '#/definitions/v1.response'
       security:
       - ApiKeyAuth: []
-      summary: Get List of Assets for Buying
+      summary: List User Assets
       tags:
       - Asset
-  /asset/available:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a list of all available assets, including both purchased
-        and created assets.
-      operationId: AllAvailableAsset
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of available assets
-          schema:
-            $ref: '#/definitions/v1.assetsListResponse'
-        "404":
-          description: No assets found
-          schema:
-            $ref: '#/definitions/v1.response'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/v1.response'
-      security:
-      - ApiKeyAuth: []
-      summary: Get List of Available Assets
-      tags:
-      - Asset
-  /asset/buy:
-    post:
-      consumes:
-      - application/json
-      description: Allows the user to purchase an asset by its ID.
-      operationId: BuyAsset
-      parameters:
-      - description: Asset ID to be purchased
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/v1.deleteAssetRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Asset purchased successfully
-          schema:
-            $ref: '#/definitions/v1.response'
-        "404":
-          description: Asset not found or purchase failed
-          schema:
-            $ref: '#/definitions/v1.response'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/v1.response'
-      security:
-      - ApiKeyAuth: []
-      summary: Buy Asset
-      tags:
-      - Asset
-  /asset/create:
     post:
       consumes:
       - application/json
@@ -188,7 +122,7 @@ paths:
       summary: Create Asset
       tags:
       - Asset
-  /asset/delete:
+  /asset/{id}:
     delete:
       consumes:
       - application/json
@@ -196,11 +130,10 @@ paths:
       operationId: DeleteAsset
       parameters:
       - description: Asset ID to be deleted
-        in: body
-        name: request
+        in: path
+        name: id
         required: true
-        schema:
-          $ref: '#/definitions/v1.deleteAssetRequest'
+        type: integer
       produces:
       - application/json
       responses:
@@ -221,19 +154,82 @@ paths:
       summary: Delete Asset
       tags:
       - Asset
-  /asset/my:
     get:
       consumes:
       - application/json
-      description: Retrieves all assets belonging to the currently authenticated user.
-      operationId: MyAssets
+      description: Get an asset from the system based on the provided asset ID.
+      operationId: GetAsset
+      parameters:
+      - description: Asset ID to retrieve
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: List of user's assets
+          description: Asset retrieved successfully
           schema:
-            $ref: '#/definitions/v1.assetsListResponse'
+            $ref: '#/definitions/entity.Asset'
+        "404":
+          description: Asset not found
+          schema:
+            $ref: '#/definitions/v1.response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/v1.response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get Asset
+      tags:
+      - Asset
+  /asset/{id}/buy:
+    get:
+      consumes:
+      - application/json
+      description: Allows the user to purchase an asset by its ID.
+      operationId: BuyAsset
+      parameters:
+      - description: Asset ID to retrieve
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Asset purchased successfully
+          schema:
+            $ref: '#/definitions/v1.response'
+        "404":
+          description: Asset not found or purchase failed
+          schema:
+            $ref: '#/definitions/v1.response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/v1.response'
+      security:
+      - ApiKeyAuth: []
+      summary: Buy Asset
+      tags:
+      - Asset
+  /asset/market:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all assets available for purchase in the system.
+      operationId: BuyingList
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of assets available for buying
+          schema:
+            $ref: '#/definitions/v1.listOfAssetResponse'
         "404":
           description: No assets found
           schema:
@@ -244,10 +240,36 @@ paths:
             $ref: '#/definitions/v1.response'
       security:
       - ApiKeyAuth: []
-      summary: List User Assets
+      summary: Get List of Assets for Buying
       tags:
       - Asset
-  /deposit/check:
+  /asset/purchased:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of all purchased assets.
+      operationId: PurchasedAsset
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of purchased assets
+          schema:
+            $ref: '#/definitions/v1.listOfAssetResponse'
+        "404":
+          description: No assets found
+          schema:
+            $ref: '#/definitions/v1.response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/v1.response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get List of Purchased Assets
+      tags:
+      - Asset
+  /deposit:
     get:
       consumes:
       - application/json
@@ -269,7 +291,6 @@ paths:
       summary: Get Current Deposit
       tags:
       - Deposit
-  /deposit/make:
     post:
       consumes:
       - application/json
@@ -300,7 +321,7 @@ paths:
       tags:
       - Deposit
   /login:
-    get:
+    post:
       consumes:
       - application/json
       description: Authenticates the user by verifying credentials and returns a JWT
@@ -359,6 +380,7 @@ schemes:
 - http
 securityDefinitions:
   ApiKeyAuth:
+    description: Type "Bearer" followed by a space and JWT token.
     in: header
     name: Authorization
     type: apiKey
