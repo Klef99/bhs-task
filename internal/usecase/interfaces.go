@@ -30,7 +30,7 @@ type (
 		UserAssetsList(ctx context.Context, user entity.User) ([]entity.Asset, error)
 		GetAssetById(ctx context.Context, id int64) (entity.Asset, error)
 		GetAssetsToBuying(ctx context.Context, user entity.User) ([]entity.Asset, error)
-		GetPurchasedAsset(ctx context.Context, user entity.User) ([]entity.Asset, error)
+		GetPurchasedAssets(ctx context.Context, user entity.User) ([]entity.Asset, error)
 		// UpdateAssetById(ctx context.Context, asset entity.Asset) (entity.Asset, error)
 	}
 

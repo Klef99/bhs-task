@@ -59,7 +59,7 @@ func (uc *AssetUseCase) BuyAsset(ctx context.Context, user entity.User, id int64
 	return status, err
 }
 
-func (uc *AssetUseCase) GetPurchasedAsset(ctx context.Context, user entity.User) ([]entity.Asset, error) {
+func (uc *AssetUseCase) GetPurchasedAssets(ctx context.Context, user entity.User) ([]entity.Asset, error) {
 	assets, err := uc.repo.GetPurchasedAssets(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("AssetUseCase - GetAllAvaliableAsset - uc.repo.GetPurchasedAssets: %w", err)

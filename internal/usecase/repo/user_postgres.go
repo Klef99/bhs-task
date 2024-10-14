@@ -84,6 +84,9 @@ func (r *UserRepository) MakeDeposit(ctx context.Context, user entity.User, amou
 	if user.Id < 1 {
 		return -1, fmt.Errorf("UserRepository - MakeDeposit - invalid input: user id must be provided")
 	}
+	if amount <= 0 {
+		return -1, fmt.Errorf("UserRepository - MakeDeposit - invalid input: amount must be greater than zero")
+	}
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
 		tx.Rollback(ctx)

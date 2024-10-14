@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS public.assets (
 	id serial4 NOT NULL,
 	"name" text NOT NULL,
-	description text NULL,
+	description text,
 	price numeric NOT NULL,
 	owner_id serial4 NOT NULL,
 	CONSTRAINT assets_check CHECK ((price >= (0)::numeric)),

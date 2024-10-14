@@ -54,6 +54,12 @@ func (rt *userRoutes) Register(w http.ResponseWriter, r *http.Request) {
 		errorResponse(w, http.StatusInternalServerError, "error decoding request body")
 		return
 	}
+	err = crd.Validate()
+	if err != nil {
+		rt.l.Error(err, "http - v1 - register - crd.Validate")
+		errorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
 	status, err := rt.t.Register(r.Context(), crd)
 	if err != nil || !status {
 		rt.l.Error(err, "http - v1 - register")
@@ -90,6 +96,12 @@ func (rt *userRoutes) Login(w http.ResponseWriter, r *http.Request) {
 		errorResponse(w, http.StatusInternalServerError, "error decoding request body")
 		return
 	}
+	err = crd.Validate()
+	if err != nil {
+		rt.l.Error(err, "http - v1 - register - crd.Validate")
+		errorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
 	user, err := rt.t.Login(r.Context(), crd)
 	if err != nil {
 		rt.l.Error(err, "http - v1 - login - rt.t.Login")
@@ -110,6 +122,10 @@ func (rt *userRoutes) Login(w http.ResponseWriter, r *http.Request) {
 
 type depositRequest struct {
 	Amount float64 `json:"amount"`
+}
+
+func (r depositRequest) Validate() bool {
+	return r.Amount > 0
 }
 
 type depositResponse struct {
@@ -135,6 +151,12 @@ func (rt *userRoutes) Deposit(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		rt.l.Error(err, "http - v1 - Deposit")
 		errorResponse(w, http.StatusInternalServerError, "error decoding request body")
+		return
+	}
+	status := req.Validate()
+	if !status {
+		rt.l.Error(err, "http - v1 - Deposit - Validate")
+		errorResponse(w, http.StatusInternalServerError, "amount should be positive")
 		return
 	}
 	_, claims, err := jwtauth.FromContext(r.Context())

@@ -93,10 +93,6 @@ func (rt *assetRoutes) CreateAsset(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type deleteAssetRequest struct {
-	Id int64 `json:"id"`
-}
-
 // @Summary     Delete Asset
 // @Description Removes an asset from the system based on the provided asset ID.
 // @ID          DeleteAsset
@@ -333,7 +329,7 @@ func (rt *assetRoutes) GetPurchasedAsset(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	usr := entity.User{Username: name, Id: int64(id)}
-	assets, err := rt.t.GetPurchasedAsset(r.Context(), usr)
+	assets, err := rt.t.GetPurchasedAssets(r.Context(), usr)
 	if err != nil {
 		rt.l.Error(err, "http - v1 - GetPurchasedAsset - rt.t.GetAllAvaliableAsset")
 		errorResponse(w, http.StatusInternalServerError, "error getting asset")
