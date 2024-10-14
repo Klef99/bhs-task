@@ -1,15 +1,12 @@
 module github.com/Klef99/bhs-task
 
-go 1.22.0
-
-toolchain go1.22.8
+go 1.23.0
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-chi/jwtauth/v5 v5.3.1
 	github.com/golang-migrate/migrate/v4 v4.18.1
-	github.com/google/go-cmp v0.6.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/rs/zerolog v1.33.0

@@ -206,9 +206,9 @@ func TestMakeDeposit(t *testing.T) {
 		{
 			name:   "empty user",
 			user:   entity.User{},
-			amount: float64(10),
+			amount: float64(11),
 			mock: func() {
-				repo.EXPECT().MakeDeposit(context.Background(), entity.User{}, float64(10)).Return(float64(-1), errInternalServErr)
+				repo.EXPECT().MakeDeposit(context.Background(), entity.User{}, float64(11)).Return(float64(-1), errInternalServErr)
 			},
 			res: float64(-1),
 			err: errInternalServErr,
@@ -225,10 +225,10 @@ func TestMakeDeposit(t *testing.T) {
 		},
 		{
 			name:   "user not exist",
-			user:   entity.User{Username: "test", Id: 1},
+			user:   entity.User{Username: "test", Id: 2},
 			amount: 10,
 			mock: func() {
-				repo.EXPECT().MakeDeposit(context.Background(), entity.User{Username: "test", Id: 1}, float64(10)).Return(float64(-1), errInternalServErr)
+				repo.EXPECT().MakeDeposit(context.Background(), entity.User{Username: "test", Id: 2}, float64(10)).Return(float64(-1), errInternalServErr)
 			},
 			res: float64(-1),
 			err: errInternalServErr,

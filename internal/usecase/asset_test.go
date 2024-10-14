@@ -404,9 +404,9 @@ func TestBuyAsset(t *testing.T) {
 		{
 			name: "asset not exist",
 			user: entity.User{Id: 1, Username: "test"},
-			id:   1,
+			id:   3,
 			mock: func() {
-				repo.EXPECT().BuyAsset(context.Background(), entity.User{Id: 1, Username: "test"}, int64(1)).Return(false, errInternalServErr)
+				repo.EXPECT().BuyAsset(context.Background(), entity.User{Id: 1, Username: "test"}, int64(3)).Return(false, errInternalServErr)
 			},
 			res: false,
 			err: errInternalServErr,
