@@ -116,6 +116,8 @@ Go to the project directory
   cd bhs-task
 ```
 
+Rename .env.example to .env and edit the variables in it
+
 Start the server
 
 ```bash
