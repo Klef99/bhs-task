@@ -4,6 +4,7 @@ app:
 
 http:
   port: '8080'
+  swagger: true
 
 logger:
   log_level: 'debug'

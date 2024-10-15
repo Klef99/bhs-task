@@ -24,7 +24,8 @@ type (
 
 	// HTTP -.
 	HTTP struct {
-		Port string `env-required:"true" yaml:"port" env:"HTTP_PORT"`
+		Port    string `env-required:"true" yaml:"port" env:"HTTP_PORT"`
+		Swagger bool   `yaml:"swagger" env-default:"false"`
 	}
 
 	// Log -.

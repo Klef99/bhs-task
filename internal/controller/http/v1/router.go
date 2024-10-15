@@ -24,7 +24,7 @@ import (
 // @in header
 // @name Authorization
 // @description Type "Bearer" followed by a space and JWT token.
-func NewRouter(handler chi.Router, l logger.Interface, t usecase.User, a usecase.Asset, jwt jwtgenerator.Interface) {
+func NewRouter(handler chi.Router, l logger.Interface, t usecase.User, a usecase.Asset, jwt jwtgenerator.Interface, enableSwagger bool) {
 	// Options
 	handler.Use(middleware.Logger)
 	handler.Use(middleware.Recoverer)
@@ -33,8 +33,9 @@ func NewRouter(handler chi.Router, l logger.Interface, t usecase.User, a usecase
 	handler.Get("/healthz", func(resp http.ResponseWriter, req *http.Request) { resp.WriteHeader(http.StatusOK) })
 
 	// Swagger
-	handler.Get("/swagger/*", httpSwagger.WrapHandler)
-
+	if enableSwagger {
+		handler.Get("/swagger/*", httpSwagger.WrapHandler)
+	}
 	// v1 api declaration
 	r := chi.NewRouter()
 	NewUserRoutes(r, t, l, jwt)
