@@ -1,5 +1,5 @@
-[![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/Klef99/bhs-task)
-[![Swagger Validator](https://img.shields.io/swagger/valid/3.0?specUrl=https%3A%2F%2Fraw.githubusercontent.com%2FKlef99%2Fbhs-task%2Fmain%2Fdocs%2Fswagger.yaml)
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/Klef99/bhs-task)
+![Swagger Validator](https://img.shields.io/swagger/valid/3.0?specUrl=https%3A%2F%2Fraw.githubusercontent.com%2FKlef99%2Fbhs-task%2Fmain%2Fdocs%2Fswagger.yaml)
 
 
 # BHS-task
