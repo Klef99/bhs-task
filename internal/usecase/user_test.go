@@ -129,9 +129,9 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			name: "user not exist",
-			crd:  entity.Credentials{Username: "test", Password: "pass"},
+			crd:  entity.Credentials{Username: "test2", Password: "pass2"},
 			mock: func() {
-				repo.EXPECT().LoginUser(context.Background(), entity.Credentials{Username: "test", Password: "pass"}).Return(int64(-1), errInternalServErr)
+				repo.EXPECT().LoginUser(context.Background(), entity.Credentials{Username: "test2", Password: "pass2"}).Return(int64(-1), errInternalServErr)
 			},
 			res: entity.User{},
 			err: errInternalServErr,
@@ -182,9 +182,9 @@ func TestCheckDeposit(t *testing.T) {
 		},
 		{
 			name: "user not exist",
-			user: entity.User{Username: "test", Id: 1},
+			user: entity.User{Username: "test2", Id: 2},
 			mock: func() {
-				repo.EXPECT().CheckDeposit(context.Background(), entity.User{Username: "test", Id: 1}).Return(float64(0), errInternalServErr)
+				repo.EXPECT().CheckDeposit(context.Background(), entity.User{Username: "test2", Id: 2}).Return(float64(0), errInternalServErr)
 			},
 			res: 0,
 			err: errInternalServErr,
@@ -193,7 +193,7 @@ func TestCheckDeposit(t *testing.T) {
 			name: "user with invalid id",
 			user: entity.User{Username: "test", Id: -1},
 			mock: func() {
-				repo.EXPECT().CheckDeposit(context.Background(), entity.User{Username: "test", Id: 1}).Return(float64(0), errInternalServErr)
+				repo.EXPECT().CheckDeposit(context.Background(), entity.User{Username: "test", Id: -1}).Return(float64(0), errInternalServErr)
 			},
 			res: 0,
 			err: fmt.Errorf("UserUseCase - CheckBalance - invalid input: user id must be provided"),

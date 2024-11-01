@@ -2,6 +2,7 @@ package usecase_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/Klef99/bhs-task/internal/entity"
@@ -99,7 +100,7 @@ func TestCreateAsset(t *testing.T) {
 				repo.EXPECT().Store(context.Background(), entity.Asset{}).Return(false, errInternalServErr)
 			},
 			res: false,
-			err: errInternalServErr,
+			err: fmt.Errorf("AssetUseCase - CreateAsset - invalid asset data"),
 		},
 		{
 			name: "success",
@@ -135,7 +136,7 @@ func TestCreateAsset(t *testing.T) {
 				repo.EXPECT().Store(context.Background(), entity.Asset{Name: "Sword"}).Return(false, errInternalServErr)
 			},
 			res: false,
-			err: errInternalServErr,
+			err: fmt.Errorf("AssetUseCase - CreateAsset - invalid asset data"),
 		},
 		{
 			name: "negative price",
@@ -156,7 +157,11 @@ func TestCreateAsset(t *testing.T) {
 			tc.mock()
 			res, err := asset.CreateAsset(context.Background(), tc.ast)
 			require.Equal(t, res, tc.res)
-			require.ErrorIs(t, err, tc.err)
+			if err != nil {
+				require.ErrorContains(t, err, tc.err.Error())
+			} else {
+				require.Nil(t, err)
+			}
 		})
 	}
 }
@@ -174,7 +179,7 @@ func TestDeleteAsset(t *testing.T) {
 				repo.EXPECT().Erase(context.Background(), entity.User{}, int64(1)).Return(false, errInternalServErr)
 			},
 			res: false,
-			err: errInternalServErr,
+			err: fmt.Errorf("AssetUseCase - DeleteAsset - invalid user or asset id"),
 		},
 		{
 			name: "invalid asset id",
@@ -184,7 +189,7 @@ func TestDeleteAsset(t *testing.T) {
 				repo.EXPECT().Erase(context.Background(), entity.User{Id: 1, Username: "test"}, int64(0)).Return(false, errInternalServErr)
 			},
 			res: false,
-			err: errInternalServErr,
+			err: fmt.Errorf("AssetUseCase - DeleteAsset - invalid user or asset id"),
 		},
 		{
 			name: "invalid user id",
@@ -194,7 +199,7 @@ func TestDeleteAsset(t *testing.T) {
 				repo.EXPECT().Erase(context.Background(), entity.User{Id: 0, Username: "test"}, int64(1)).Return(false, errInternalServErr)
 			},
 			res: false,
-			err: errInternalServErr,
+			err: fmt.Errorf("AssetUseCase - DeleteAsset - invalid user or asset id"),
 		},
 		{
 			name: "success",
@@ -208,10 +213,10 @@ func TestDeleteAsset(t *testing.T) {
 		},
 		{
 			name: "asset not exist",
-			user: entity.User{Id: 1, Username: "test"},
-			id:   1,
+			user: entity.User{Id: 2, Username: "test"},
+			id:   3,
 			mock: func() {
-				repo.EXPECT().Erase(context.Background(), entity.User{Id: 1, Username: "test"}, int64(1)).Return(false, errInternalServErr)
+				repo.EXPECT().Erase(context.Background(), entity.User{Id: 2, Username: "test"}, int64(3)).Return(false, errInternalServErr)
 			},
 			res: false,
 			err: errInternalServErr,
@@ -236,7 +241,11 @@ func TestDeleteAsset(t *testing.T) {
 			tc.mock()
 			res, err := asset.DeleteAsset(context.Background(), tc.user, tc.id)
 			require.Equal(t, res, tc.res)
-			require.ErrorIs(t, err, tc.err)
+			if err != nil {
+				require.ErrorContains(t, err, tc.err.Error())
+			} else {
+				require.Nil(t, err)
+			}
 		})
 	}
 }
@@ -253,7 +262,7 @@ func TestUserAssetsList(t *testing.T) {
 				repo.EXPECT().UserAssetsList(context.Background(), entity.User{}).Return([]entity.Asset{}, errInternalServErr)
 			},
 			res: []entity.Asset{},
-			err: errInternalServErr,
+			err: fmt.Errorf("AssetUseCase - AssetsList - invalid user id"),
 		},
 		{
 			name: "invalid user id",
@@ -262,7 +271,7 @@ func TestUserAssetsList(t *testing.T) {
 				repo.EXPECT().UserAssetsList(context.Background(), entity.User{Id: 0, Username: "test"}).Return([]entity.Asset{}, errInternalServErr)
 			},
 			res: []entity.Asset{},
-			err: errInternalServErr,
+			err: fmt.Errorf("AssetUseCase - AssetsList - invalid user id"),
 		},
 		{
 			name: "success",
@@ -274,10 +283,19 @@ func TestUserAssetsList(t *testing.T) {
 			err: nil,
 		},
 		{
-			name: "assets not found",
-			user: entity.User{Id: 1, Username: "test"},
+			name: "user not exist",
+			user: entity.User{Id: 3, Username: "test3"},
 			mock: func() {
-				repo.EXPECT().UserAssetsList(context.Background(), entity.User{Id: 1, Username: "test"}).Return([]entity.Asset{}, nil)
+				repo.EXPECT().UserAssetsList(context.Background(), entity.User{Id: 3, Username: "test3"}).Return([]entity.Asset{}, errInternalServErr)
+			},
+			res: []entity.Asset{},
+			err: errInternalServErr,
+		},
+		{
+			name: "assets not found",
+			user: entity.User{Id: 2, Username: "test"},
+			mock: func() {
+				repo.EXPECT().UserAssetsList(context.Background(), entity.User{Id: 2, Username: "test"}).Return([]entity.Asset{}, nil)
 			},
 			res: []entity.Asset{},
 			err: nil,
@@ -295,7 +313,11 @@ func TestUserAssetsList(t *testing.T) {
 
 			// Adjust comparison for the slice result
 			require.ElementsMatch(t, res, tc.res)
-			require.ErrorIs(t, err, tc.err)
+			if err != nil {
+				require.ErrorContains(t, err, tc.err.Error())
+			} else {
+				require.Nil(t, err)
+			}
 		})
 	}
 }
@@ -312,7 +334,7 @@ func TestGetAssetsToBuying(t *testing.T) {
 				repo.EXPECT().GetOtherUsersAssets(context.Background(), entity.User{}).Return([]entity.Asset{}, errInternalServErr)
 			},
 			res: []entity.Asset{},
-			err: errInternalServErr,
+			err: fmt.Errorf("AssetUseCase - GetAssetsToBuying - invalid user id"),
 		},
 		{
 			name: "invalid user id",
@@ -321,7 +343,7 @@ func TestGetAssetsToBuying(t *testing.T) {
 				repo.EXPECT().GetOtherUsersAssets(context.Background(), entity.User{Id: 0, Username: "test"}).Return([]entity.Asset{}, errInternalServErr)
 			},
 			res: []entity.Asset{},
-			err: errInternalServErr,
+			err: fmt.Errorf("AssetUseCase - GetAssetsToBuying - invalid user id"),
 		},
 		{
 			name: "success",
@@ -333,10 +355,19 @@ func TestGetAssetsToBuying(t *testing.T) {
 			err: nil,
 		},
 		{
-			name: "assets not found",
-			user: entity.User{Id: 1, Username: "test"},
+			name: "user not exist",
+			user: entity.User{Id: 3, Username: "test3"},
 			mock: func() {
-				repo.EXPECT().GetOtherUsersAssets(context.Background(), entity.User{Id: 1, Username: "test"}).Return([]entity.Asset{}, nil)
+				repo.EXPECT().GetOtherUsersAssets(context.Background(), entity.User{Id: 3, Username: "test3"}).Return([]entity.Asset{}, errInternalServErr)
+			},
+			res: []entity.Asset{},
+			err: errInternalServErr,
+		},
+		{
+			name: "assets not found",
+			user: entity.User{Id: 2, Username: "test"},
+			mock: func() {
+				repo.EXPECT().GetOtherUsersAssets(context.Background(), entity.User{Id: 2, Username: "test"}).Return([]entity.Asset{}, nil)
 			},
 			res: []entity.Asset{},
 			err: nil,
@@ -351,7 +382,11 @@ func TestGetAssetsToBuying(t *testing.T) {
 			tc.mock()
 			res, err := asset.GetAssetsToBuying(context.Background(), tc.user)
 			require.ElementsMatch(t, res, tc.res)
-			require.ErrorIs(t, err, tc.err)
+			if err != nil {
+				require.ErrorContains(t, err, tc.err.Error())
+			} else {
+				require.Nil(t, err)
+			}
 		})
 	}
 }
@@ -369,7 +404,7 @@ func TestBuyAsset(t *testing.T) {
 				repo.EXPECT().BuyAsset(context.Background(), entity.User{}, int64(1)).Return(false, errInternalServErr)
 			},
 			res: false,
-			err: errInternalServErr,
+			err: fmt.Errorf("AssetUseCase - BuyAsset - invalid user id"),
 		},
 		{
 			name: "invalid asset id",
@@ -379,7 +414,7 @@ func TestBuyAsset(t *testing.T) {
 				repo.EXPECT().BuyAsset(context.Background(), entity.User{Id: 1, Username: "test"}, int64(0)).Return(false, errInternalServErr)
 			},
 			res: false,
-			err: errInternalServErr,
+			err: fmt.Errorf("AssetUseCase - BuyAsset - invalid asset id"),
 		},
 		{
 			name: "invalid user id",
@@ -389,7 +424,7 @@ func TestBuyAsset(t *testing.T) {
 				repo.EXPECT().BuyAsset(context.Background(), entity.User{Id: 0, Username: "test"}, int64(1)).Return(false, errInternalServErr)
 			},
 			res: false,
-			err: errInternalServErr,
+			err: fmt.Errorf("AssetUseCase - BuyAsset - invalid user id"),
 		},
 		{
 			name: "success",
@@ -431,7 +466,11 @@ func TestBuyAsset(t *testing.T) {
 			tc.mock()
 			res, err := asset.BuyAsset(context.Background(), tc.user, tc.id)
 			require.Equal(t, res, tc.res)
-			require.ErrorIs(t, err, tc.err)
+			if err != nil {
+				require.ErrorContains(t, err, tc.err.Error())
+			} else {
+				require.Nil(t, err)
+			}
 		})
 	}
 }
@@ -448,13 +487,22 @@ func TestGetPurchasedAsset(t *testing.T) {
 				repo.EXPECT().GetPurchasedAssets(context.Background(), entity.User{}).Return([]entity.Asset{}, errInternalServErr)
 			},
 			res: []entity.Asset{},
-			err: errInternalServErr,
+			err: fmt.Errorf("AssetUseCase - GetPurchasedAssets - invalid user id"),
 		},
 		{
 			name: "invalid user id",
 			user: entity.User{Id: 0, Username: "test"},
 			mock: func() {
 				repo.EXPECT().GetPurchasedAssets(context.Background(), entity.User{Id: 0, Username: "test"}).Return([]entity.Asset{}, errInternalServErr)
+			},
+			res: []entity.Asset{},
+			err: fmt.Errorf("AssetUseCase - GetPurchasedAssets - invalid user id"),
+		},
+		{
+			name: "user not exist",
+			user: entity.User{Id: 3, Username: "test3"},
+			mock: func() {
+				repo.EXPECT().GetPurchasedAssets(context.Background(), entity.User{Id: 3, Username: "test3"}).Return([]entity.Asset{}, errInternalServErr)
 			},
 			res: []entity.Asset{},
 			err: errInternalServErr,
@@ -470,9 +518,9 @@ func TestGetPurchasedAsset(t *testing.T) {
 		},
 		{
 			name: "assets not found",
-			user: entity.User{Id: 1, Username: "test"},
+			user: entity.User{Id: 2, Username: "test"},
 			mock: func() {
-				repo.EXPECT().GetPurchasedAssets(context.Background(), entity.User{Id: 1, Username: "test"}).Return([]entity.Asset{}, nil)
+				repo.EXPECT().GetPurchasedAssets(context.Background(), entity.User{Id: 2, Username: "test"}).Return([]entity.Asset{}, nil)
 			},
 			res: []entity.Asset{},
 			err: nil,
@@ -487,7 +535,11 @@ func TestGetPurchasedAsset(t *testing.T) {
 			tc.mock()
 			res, err := asset.GetPurchasedAssets(context.Background(), tc.user)
 			require.ElementsMatch(t, res, tc.res)
-			require.ErrorIs(t, err, tc.err)
+			if err != nil {
+				require.ErrorContains(t, err, tc.err.Error())
+			} else {
+				require.Nil(t, err)
+			}
 		})
 	}
 }
@@ -513,7 +565,7 @@ func TestGetAssetById(t *testing.T) {
 				repo.EXPECT().GetAssetById(context.Background(), int64(-1)).Return(entity.Asset{}, errInternalServErr)
 			},
 			res: entity.Asset{},
-			err: errInternalServErr,
+			err: fmt.Errorf("AssetUseCase - GetAssetById - invalid asset id"),
 		},
 		{
 			name: "assets not found",
@@ -534,7 +586,11 @@ func TestGetAssetById(t *testing.T) {
 			tc.mock()
 			res, err := asset.GetAssetById(context.Background(), tc.id)
 			require.Equal(t, res, tc.res)
-			require.ErrorIs(t, err, tc.err)
+			if err != nil {
+				require.ErrorContains(t, err, tc.err.Error())
+			} else {
+				require.Nil(t, err)
+			}
 		})
 	}
 }

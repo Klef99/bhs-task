@@ -24,9 +24,6 @@ func NewAssetRepository(pg *postgres.Postgres) *AssetRepository {
 
 // Store -.
 func (r *AssetRepository) Store(ctx context.Context, ast entity.Asset) (bool, error) {
-	if ast.Name == "" || ast.Owner_id <= 0 {
-		return false, fmt.Errorf("AssetRepository - Store - invalid asset data")
-	}
 	sql, args, err := r.Builder.
 		Insert("assets").
 		Columns("name", "description", "price", "owner_id").
@@ -47,9 +44,6 @@ func (r *AssetRepository) Store(ctx context.Context, ast entity.Asset) (bool, er
 
 // Erase -.
 func (r *AssetRepository) Erase(ctx context.Context, user entity.User, id int64) (bool, error) {
-	if id <= 0 || user.Id <= 0 {
-		return false, fmt.Errorf("AssetRepository - Erase - invalid user or asset id")
-	}
 	sql, args, err := r.Builder.
 		Delete("assets").
 		Where(sq.Eq{"id": id, "owner_id": user.Id}).
@@ -70,9 +64,6 @@ func (r *AssetRepository) Erase(ctx context.Context, user entity.User, id int64)
 
 // List -.
 func (r *AssetRepository) UserAssetsList(ctx context.Context, user entity.User) ([]entity.Asset, error) {
-	if user.Id <= 0 {
-		return []entity.Asset{}, fmt.Errorf("AssetRepository - Erase - invalid user or asset id")
-	}
 	sql, args, err := r.Builder.
 		Select("*").
 		From("assets").
@@ -99,9 +90,6 @@ func (r *AssetRepository) UserAssetsList(ctx context.Context, user entity.User) 
 }
 
 func (r *AssetRepository) GetOtherUsersAssets(ctx context.Context, user entity.User) ([]entity.Asset, error) {
-	if user.Id <= 0 {
-		return []entity.Asset{}, fmt.Errorf("AssetRepository - Erase - invalid user or asset id")
-	}
 	sql, args, err := r.Builder.Select("id, name, description, price").
 		From("assets").
 		Where(sq.NotEq{"owner_id": user.Id}).
@@ -127,9 +115,6 @@ func (r *AssetRepository) GetOtherUsersAssets(ctx context.Context, user entity.U
 }
 
 func (r *AssetRepository) BuyAsset(ctx context.Context, user entity.User, id int64) (bool, error) {
-	if user.Id <= 0 || id <= 0 {
-		return false, fmt.Errorf("AssetRepository - BuyAsset - invalid user or asset id")
-	}
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
 		return false, fmt.Errorf("AssetRepository - BuyAsset - r.Pool.Begin: %w", err)
@@ -148,7 +133,7 @@ func (r *AssetRepository) BuyAsset(ctx context.Context, user entity.User, id int
 		return false, fmt.Errorf("AssetRepository - BuyAsset - row.Scan: %w", err)
 	}
 	if owner_id == user.Id {
-		return false, fmt.Errorf("AssetRepository - BuyAsset - user can't buy their own asset")
+		return false, fmt.Errorf("AssetRepository - BuyAsset - user can't buy their own asset") // This validation is here, as we get information about the owner of the asset in the transaction.
 	}
 	sql, args, err = r.Builder.
 		Update("users").
@@ -189,9 +174,6 @@ func (r *AssetRepository) BuyAsset(ctx context.Context, user entity.User, id int
 }
 
 func (r *AssetRepository) GetPurchasedAssets(ctx context.Context, user entity.User) ([]entity.Asset, error) {
-	if user.Id <= 0 {
-		return []entity.Asset{}, fmt.Errorf("AssetRepository - GetPurchasedAssets - invalid user or asset id")
-	}
 	sql, args, err := r.Builder.
 		Select("id, name, description, price, owner_id").
 		From("assets").
@@ -219,9 +201,6 @@ func (r *AssetRepository) GetPurchasedAssets(ctx context.Context, user entity.Us
 }
 
 func (r *AssetRepository) GetAssetById(ctx context.Context, id int64) (entity.Asset, error) {
-	if id <= 0 {
-		return entity.Asset{}, fmt.Errorf("AssetRepository - GetAssetById - invalid asset id")
-	}
 	sql, args, err := r.Builder.
 		Select("name, description, price, owner_id").
 		From("assets").
