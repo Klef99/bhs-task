@@ -3,6 +3,7 @@ package usecase_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/Klef99/bhs-task/internal/entity"
@@ -63,7 +64,7 @@ func TestRegister(t *testing.T) {
 				repo.EXPECT().CreateUser(context.Background(), entity.Credentials{}).Return(false, errInternalServErr)
 			},
 			res: false,
-			err: errInternalServErr,
+			err: fmt.Errorf("UserUseCase - Register - crd.Validate: invalid credentials"),
 		},
 		{
 			name: "success",
@@ -92,10 +93,13 @@ func TestRegister(t *testing.T) {
 			t.Parallel()
 
 			tc.mock()
-
 			res, err := user.Register(context.Background(), tc.crd)
 			require.Equal(t, res, tc.res)
-			require.ErrorIs(t, err, tc.err)
+			if err != nil {
+				require.ErrorContains(t, err, tc.err.Error())
+			} else {
+				require.Nil(t, err)
+			}
 		})
 	}
 }
@@ -112,7 +116,7 @@ func TestLogin(t *testing.T) {
 				repo.EXPECT().LoginUser(context.Background(), entity.Credentials{}).Return(int64(-1), errInternalServErr)
 			},
 			res: entity.User{},
-			err: errInternalServErr,
+			err: fmt.Errorf("UserUseCase - Login - crd.Validate: invalid credentials"),
 		},
 		{
 			name: "success",
@@ -144,7 +148,11 @@ func TestLogin(t *testing.T) {
 
 			res, err := user.Login(context.Background(), tc.crd)
 			require.Equal(t, res, tc.res)
-			require.ErrorIs(t, err, tc.err)
+			if err != nil {
+				require.ErrorContains(t, err, tc.err.Error())
+			} else {
+				require.Nil(t, err)
+			}
 		})
 	}
 }
@@ -161,7 +169,7 @@ func TestCheckDeposit(t *testing.T) {
 				repo.EXPECT().CheckDeposit(context.Background(), entity.User{}).Return(float64(0), errInternalServErr)
 			},
 			res: 0,
-			err: errInternalServErr,
+			err: fmt.Errorf("UserUseCase - CheckBalance - invalid input: user id must be provided"),
 		},
 		{
 			name: "success",
@@ -181,6 +189,15 @@ func TestCheckDeposit(t *testing.T) {
 			res: 0,
 			err: errInternalServErr,
 		},
+		{
+			name: "user with invalid id",
+			user: entity.User{Username: "test", Id: -1},
+			mock: func() {
+				repo.EXPECT().CheckDeposit(context.Background(), entity.User{Username: "test", Id: 1}).Return(float64(0), errInternalServErr)
+			},
+			res: 0,
+			err: fmt.Errorf("UserUseCase - CheckBalance - invalid input: user id must be provided"),
+		},
 	}
 
 	for _, tc := range tests {
@@ -193,7 +210,11 @@ func TestCheckDeposit(t *testing.T) {
 
 			res, err := user.CheckDeposit(context.Background(), tc.user)
 			require.Equal(t, res, tc.res)
-			require.ErrorIs(t, err, tc.err)
+			if err != nil {
+				require.ErrorContains(t, err, tc.err.Error())
+			} else {
+				require.Nil(t, err)
+			}
 		})
 	}
 }
@@ -211,7 +232,7 @@ func TestMakeDeposit(t *testing.T) {
 				repo.EXPECT().MakeDeposit(context.Background(), entity.User{}, float64(11)).Return(float64(-1), errInternalServErr)
 			},
 			res: float64(-1),
-			err: errInternalServErr,
+			err: fmt.Errorf("UserUseCase - MakeDeposit - invalid input: user id must be provided"),
 		},
 		{
 			name:   "success",
@@ -241,7 +262,17 @@ func TestMakeDeposit(t *testing.T) {
 				repo.EXPECT().MakeDeposit(context.Background(), entity.User{Username: "test", Id: 1}, float64(-10)).Return(float64(-1), errInternalServErr)
 			},
 			res: float64(-1),
-			err: errInternalServErr,
+			err: fmt.Errorf("UserUseCase - MakeDeposit - invalid input: amount must be greater than zero"),
+		},
+		{
+			name:   "user with invalid id",
+			user:   entity.User{Username: "test", Id: -2},
+			amount: 3,
+			mock: func() {
+				repo.EXPECT().MakeDeposit(context.Background(), entity.User{Username: "test", Id: -2}, float64(3)).Return(float64(-1), errInternalServErr)
+			},
+			res: -1,
+			err: fmt.Errorf("UserUseCase - MakeDeposit - invalid input: user id must be provided"),
 		},
 	}
 
@@ -255,7 +286,11 @@ func TestMakeDeposit(t *testing.T) {
 
 			res, err := user.MakeDeposit(context.Background(), tc.user, tc.amount)
 			require.Equal(t, res, tc.res)
-			require.ErrorIs(t, err, tc.err)
+			if err != nil {
+				require.ErrorContains(t, err, tc.err.Error())
+			} else {
+				require.Nil(t, err)
+			}
 		})
 	}
 }

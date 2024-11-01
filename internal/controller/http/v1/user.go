@@ -54,7 +54,6 @@ func (rt *userRoutes) Register(w http.ResponseWriter, r *http.Request) {
 		errorResponse(w, http.StatusInternalServerError, "error decoding request body")
 		return
 	}
-	err = crd.Validate()
 	if err != nil {
 		rt.l.Error(err, "http - v1 - register - crd.Validate")
 		errorResponse(w, http.StatusBadRequest, err.Error())
@@ -94,12 +93,6 @@ func (rt *userRoutes) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		rt.l.Error(err, "http - v1 - login - decoder.Decode")
 		errorResponse(w, http.StatusInternalServerError, "error decoding request body")
-		return
-	}
-	err = crd.Validate()
-	if err != nil {
-		rt.l.Error(err, "http - v1 - register - crd.Validate")
-		errorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	user, err := rt.t.Login(r.Context(), crd)

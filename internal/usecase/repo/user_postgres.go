@@ -26,9 +26,6 @@ func NewUserRepository(pg *postgres.Postgres, hs hasher.Interface) *UserReposito
 
 // CreateUser -.
 func (r *UserRepository) CreateUser(ctx context.Context, crd entity.Credentials) (bool, error) {
-	if crd.Username == "" || crd.Password == "" {
-		return false, fmt.Errorf("UserRepository - CreateUser - invalid input: username and password must not be empty")
-	}
 	hashedBytes, err := r.Hasher.HashPassword(crd.Password)
 	if err != nil {
 		return false, fmt.Errorf("UserRepository - CreateUser - bcrypt.GenerateFromPassword: %w", err)
@@ -38,7 +35,6 @@ func (r *UserRepository) CreateUser(ctx context.Context, crd entity.Credentials)
 		Columns("username, password_hash").
 		Values(crd.Username, hashedBytes).
 		ToSql()
-
 	if err != nil {
 		return false, fmt.Errorf("UserRepository - CreateUser - r.Builder: %w", err)
 	}
@@ -53,9 +49,6 @@ func (r *UserRepository) CreateUser(ctx context.Context, crd entity.Credentials)
 
 // LoginUser -.
 func (r *UserRepository) LoginUser(ctx context.Context, crd entity.Credentials) (int64, error) {
-	if crd.Username == "" || crd.Password == "" {
-		return -1, fmt.Errorf("UserRepository - LoginUser - invalid input: username and password must not be empty")
-	}
 	sql, args, err := r.Builder.Select("id", "password_hash").From("users").Where(sq.Eq{"username": crd.Username}).ToSql()
 	if err != nil {
 		return -1, fmt.Errorf("UserRepository - LoginUser - r.Builder: %w", err)
@@ -81,12 +74,6 @@ func (r *UserRepository) LoginUser(ctx context.Context, crd entity.Credentials) 
 
 // Deposit -.
 func (r *UserRepository) MakeDeposit(ctx context.Context, user entity.User, amount float64) (float64, error) {
-	if user.Id < 1 {
-		return -1, fmt.Errorf("UserRepository - MakeDeposit - invalid input: user id must be provided")
-	}
-	if amount <= 0 {
-		return -1, fmt.Errorf("UserRepository - MakeDeposit - invalid input: amount must be greater than zero")
-	}
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
 		tx.Rollback(ctx)

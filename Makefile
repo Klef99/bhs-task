@@ -14,17 +14,19 @@ help: ## Display this help screen
 
 up: ### Run docker-compose
 	docker-compose up --build -d && docker-compose logs -f
-.PHONY: compose-up
+.PHONY: up
 
 down: ### Down docker-compose
 	docker-compose down --remove-orphans
-.PHONY: compose-down
+.PHONY: down
 
 dev-up: ### Up infrastructure
 	docker-compose up -d postgres && docker-compose logs -f
+.PHONY: dev-up
 
 dev-down: ### Down infrastructure
 	docker-compose down postgres --remove-orphans
+.PHONY: dev-down
 
 swag-v1: ### swag init
 	swag init -g internal/controller/http/v1/router.go
@@ -36,7 +38,7 @@ mock-generate: ### generate mocks
 
 rm-volume: ### remove docker volume
 	docker volume rm bhs-task_pg-data
-.PHONY: docker-rm-volume
+.PHONY: rm-volume
 
 linter-golangci: ### check by golangci linter
 	golangci-lint run
@@ -45,6 +47,12 @@ linter-golangci: ### check by golangci linter
 test: ### run test
 	go test -v -cover -race ./internal/...
 .PHONY: test
+
+cover: ### create cover file report
+	go test -short -count=1 -race -coverprofile=coverage.out ./internal/...
+	go tool cover -html coverage.out
+	rm coverage.out
+.PHONY: cover
 
 migrate-create:  ### create new migration
 	migrate create -ext sql -dir migrations 'migrate_name'

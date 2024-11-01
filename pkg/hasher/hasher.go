@@ -1,8 +1,6 @@
 package hasher
 
 import (
-	"fmt"
-
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -33,7 +31,7 @@ var _ Interface = (*Hasher)(nil)
 func (h *Hasher) HashPassword(password string) ([]byte, error) {
 	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(password), h.Cost)
 	if err != nil {
-		return []byte{}, fmt.Errorf("UserRepository - CreateUser - bcrypt.GenerateFromPassword: %w", err)
+		return []byte{}, err
 	}
 	return hashedBytes, nil
 }
