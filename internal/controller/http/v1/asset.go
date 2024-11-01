@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/Klef99/bhs-task/internal/entity"
 	"github.com/Klef99/bhs-task/internal/usecase"
@@ -285,6 +286,11 @@ func (rt *assetRoutes) BuyAsset(w http.ResponseWriter, r *http.Request) {
 	usr := entity.User{Username: name, Id: int64(id)}
 	status, err := rt.t.BuyAsset(r.Context(), usr, idAsset)
 	if err != nil {
+		if strings.Contains(err.Error(), "row.Scan: no rows in result set") { // I don't know if this can be considered a bad practice?
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(response{"Asset not found"})
+			return
+		}
 		rt.l.Error(err, "http - v1 - BuyAsset - rt.t.BuyAsset")
 		errorResponse(w, http.StatusInternalServerError, "error buying asset")
 		return
@@ -365,16 +371,15 @@ func (rt *assetRoutes) GetAssetById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	asset, err := rt.t.GetAssetById(r.Context(), int64(idAsset))
-	if err != nil {
-		rt.l.Error(err, "http - v1 - GetAssetById - rt.t.GetAssetById")
-		errorResponse(w, http.StatusInternalServerError, "error getting asset")
-		return
-	}
-	if asset.Id != 0 {
+	if asset.Id <= 0 {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(response{"Asset not found"})
+	} else if err == nil {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(asset)
 	} else {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(response{"Asset not found"})
+		rt.l.Error(err, "http - v1 - GetAssetById - rt.t.GetAssetById")
+		errorResponse(w, http.StatusInternalServerError, "error getting asset")
+		return
 	}
 }
