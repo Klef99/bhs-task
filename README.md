@@ -137,8 +137,12 @@ Usage:
   rm-volume        remove docker volume
   linter-golangci  check by golangci linter
   test             run test
+  cover            create cover file report
   migrate-create   create new migration
   migrate-up       migration up
+  migrate-down     migration down
+  integration-test  run integration-test
+  allure           run allure on 9999 port
 ```
 ## Running Tests
 

@@ -9,7 +9,7 @@ import (
 
 func main() {
 	// Configuration
-	cfg, err := config.NewConfig()
+	cfg, err := config.NewConfig("./config/config.yml")
 	if err != nil {
 		log.Fatalf("Config error: %w", err)
 	}
