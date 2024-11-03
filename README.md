@@ -48,7 +48,12 @@ For Debian/Ubuntu based systems:
 sudo apt update
 
 # Install make, Go, Docker, Docker Compose, and golangci-lint
-sudo apt install -y make golang docker.io docker-compose curl
+sudo apt install -y wget make golang docker.io docker-compose curl
+
+# Install Allure
+wget https://github.com/allure-framework/allure2/releases/download/2.32.0/allure_2.32.0-1_all.deb
+sudo dpkg -i allure_2.32.0-1_all.deb
+rm allure_2.32.0-1_all.deb
 
 # Install golangci-lint
 curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s latest
@@ -63,37 +68,13 @@ go version
 docker --version
 docker-compose --version
 golangci-lint --version
-```
-
-For CentOS/RHEL based systems:
-```bash
-# Update package index
-sudo yum update -y
-
-# Install make, Go, Docker, Docker Compose, and golangci-lint
-sudo yum install -y make golang docker curl
-sudo systemctl start docker
-sudo systemctl enable docker
-
-# Install Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-# Install golangci-lint
-curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s latest
-
-# Verify installation
-make --version
-go version
-docker --version
-docker-compose --version
-golangci-lint --version
+allure --version
 ```
 
 For macOS using [Homebrew](https://brew.sh/):
 ```bash
 # Install dependencies using Homebrew
-brew install make go docker docker-compose golangci-lint
+brew install make go docker docker-compose golangci-lint allure
 
 # Verify installation
 make --version
@@ -101,6 +82,7 @@ go version
 docker --version
 docker-compose --version
 golangci-lint --version
+allure --version
 ```
 ## Run Locally
 
